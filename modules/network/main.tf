@@ -1,20 +1,25 @@
-terraform {
-  required_version = ">= 1.0.0" # Ensure that the Terraform version is 1.0.0 or higher
+resource "google_compute_network" "this" {
+  name                    = var.network_name
+  project                 = var.project_id
+  auto_create_subnetworks = false
+  routing_mode            = var.routing_mode
+}
 
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws" # Specify the source of the AWS provider
-      version = "~> 4.0"        # Use a version of the AWS provider that is compatible with version
+resource "google_compute_subnetwork" "this" {
+  for_each      = var.subnets
+  name          = each.value.name
+  project       = var.project_id
+  region        = each.value.region
+  network       = google_compute_network.this.id
+  ip_cidr_range = each.value.ip_cidr_range
+
+  private_ip_google_access = each.value.private_ip_google_access
+
+  dynamic "secondary_ip_range" {
+    for_each = each.value.secondary_ranges
+    content {
+      range_name    = secondary_ip_range.value.range_name
+      ip_cidr_range = secondary_ip_range.value.ip_cidr_range
     }
-  }
-}
-
-provider "aws" {
-  region = "us-east-1" # Set the AWS region to US East (N. Virginia)
-}
-
-resource "aws_instance" "aws_example" {
-  tags = {
-    Name = "ExampleInstance" # Tag the instance with a Name tag for easier identification
   }
 }
