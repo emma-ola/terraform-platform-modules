@@ -72,7 +72,7 @@ variable "folder_parent" {
   default     = null
 
   validation {
-    condition = var.folder_parent == null || can(regex("^(organizations|folders)/[0-9]+$", var.folder_parent))
+    condition     = var.folder_parent == null || can(regex("^(organizations|folders)/[0-9]+$", var.folder_parent))
     error_message = "folder_parent must be in the form organizations/1234567890 or folders/1234567890."
   }
 }
@@ -85,9 +85,9 @@ variable "labels" {
 
   validation {
     condition = (
-    contains(keys(var.labels), "env") &&
-    contains(keys(var.labels), "owner") &&
-    contains(keys(var.labels), "cost_center")
+      contains(keys(var.labels), "env") &&
+      contains(keys(var.labels), "owner") &&
+      contains(keys(var.labels), "cost_center")
     )
     error_message = "labels must include: env, owner, cost_center."
   }
