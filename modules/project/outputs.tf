@@ -5,8 +5,12 @@ output "project_id" {
 
 output "enabled_apis" {
   description = "APIs enabled by this module."
-  value       = sort([for s in google_project_service.apis : s.service])
+  value = sort(concat(
+    (length(google_project_service.serviceusage) == 1 ? [google_project_service.serviceusage[0].service] : []),
+    [for s in google_project_service.apis : s.service]
+  ))
 }
+
 
 output "folder_id" {
   description = "Folder resource name used for the project (e.g., folders/123...). Null if no folder was used."
