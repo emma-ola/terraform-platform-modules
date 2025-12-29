@@ -3,6 +3,17 @@ variable "project_id" {
   type        = string
 }
 
+variable "project_name" {
+  description = "Display name for the project."
+  type        = string
+  default     = "Dev Platform"
+}
+
+variable "billing_account" {
+  description = "The Billing Account for the project"
+  type        = string
+}
+
 variable "region" {
   description = "Default region for resources."
   type        = string
@@ -17,4 +28,15 @@ variable "labels" {
     owner       = "tomide"
     cost_center = "platform"
   }
+}
+
+variable "folder_parent" {
+  description = "The Parent for the folder"
+  type        = string
+}
+
+variable "folder_display_name" {
+  description = "Display name for the folder"
+  type        = string
+  default     = "Dev"
 }
