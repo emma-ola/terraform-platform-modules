@@ -1,8 +1,10 @@
 locals {
   # When creating: allow project_id to be supplied, otherwise derive from project_name.
-  effective_project_id = var.create_project
-    ? coalesce(var.project_id, replace(lower(var.project_name), "/[^a-z0-9-]/", "-"))
+  effective_project_id = (
+    var.create_project
+    ? coalesce(var.project_id, regexreplace(lower(var.project_name), "/[^a-z0-9-]/", "-"))
     : var.project_id
+  )
 }
 
 resource "google_folder" "this" {
@@ -25,20 +27,21 @@ locals {
 
 locals {
   creating_requires = var.create_project ? (
-  var.project_name != null &&
-  var.org_id != null &&
-  var.billing_account != null &&
-  local.effective_project_id != null
+    var.project_name != null &&
+    var.org_id != null &&
+    var.billing_account != null &&
+    local.effective_project_id != null
   ) : true
 }
 
 resource "google_project" "this" {
-  count      = var.create_project ? 1 : 0
-  project_id = local.effective_project_id
-  name       = var.project_name
-  org_id     = var.org_id
-  folder_id  = local.effective_folder_id
-  labels     = var.labels
+  count           = var.create_project ? 1 : 0
+  project_id      = local.effective_project_id
+  name            = var.project_name
+  org_id          = var.org_id
+  folder_id       = local.effective_folder_id
+  billing_account = var.billing_account
+  labels          = var.labels
 
   lifecycle {
     precondition {
@@ -50,12 +53,6 @@ resource "google_project" "this" {
       error_message = "create_folder=true requires create_project=true (otherwise the module would create a folder but no project)."
     }
   }
-}
-
-resource "google_project_billing_info" "this" {
-  count           = var.create_project ? 1 : 0
-  project         = google_project.this[0].project_id
-  billing_account = var.billing_account
 }
 
 resource "google_project_service" "apis" {
