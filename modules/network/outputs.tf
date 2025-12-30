@@ -32,3 +32,13 @@ output "firewall_rule_names" {
   description = "Names of firewall rules created by this module."
   value       = { for k, r in google_compute_firewall.rules : k => r.name }
 }
+
+output "nat_router_names" {
+  description = "Map of region -> Cloud Router name (if NAT enabled)."
+  value       = { for r, cr in google_compute_router.this : r => cr.name }
+}
+
+output "nat_names" {
+  description = "Map of region -> Cloud NAT name (if NAT enabled)."
+  value       = { for r, nat in google_compute_router_nat.this : r => nat.name }
+}

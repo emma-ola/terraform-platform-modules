@@ -70,3 +70,26 @@ variable "firewall_rules" {
 
   default = {}
 }
+
+variable "nat" {
+  description = "Optional Cloud NAT configuration."
+  type = object({
+    enabled = optional(bool, false)
+    regions = optional(map(object({
+      router_name = optional(string, null)
+      nat_name    = optional(string, null)
+      source_subnetwork_ip_ranges_to_nat = optional(string, "ALL_SUBNETWORKS_ALL_IP_RANGES")
+      subnet_keys = optional(list(string), [])
+    })), {})
+  })
+
+  default = {
+    enabled = false
+    regions = {}
+  }
+
+  validation {
+    condition = contains([true, false], try(var.nat.enabled, false))
+    error_message = "nat.enabled must be true or false."
+  }
+}
