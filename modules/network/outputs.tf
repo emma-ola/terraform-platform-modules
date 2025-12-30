@@ -18,6 +18,7 @@ output "subnet_self_links" {
   value       = { for k, s in google_compute_subnetwork.this : k => s.self_link }
 }
 
+# noinspection HILUnresolvedReference
 output "subnet_secondary_ranges" {
   description = "Map of subnet keys to their secondary ranges (range_name -> cidr)."
   value = {
@@ -25,4 +26,9 @@ output "subnet_secondary_ranges" {
       for r in s.secondary_ip_range : r.range_name => r.ip_cidr_range
     }
   }
+}
+
+output "firewall_rule_names" {
+  description = "Names of firewall rules created by this module."
+  value       = { for k, r in google_compute_firewall.rules : k => r.name }
 }
