@@ -40,4 +40,91 @@ module "network" {
       ip_cidr_range = "10.40.0.0/20"
     }
   }
+  manage_firewall_rules = true
+  firewall_rules = {
+    allow_internal_to_app = {
+      name        = "allow-internal-to-app"
+      description = "Allow internal RFC1918 to app instances via target tag"
+      direction   = "INGRESS"
+      priority    = 1000
+
+      source_ranges = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+      target_tags   = ["app"]
+
+      allows = [
+        { protocol = "tcp", ports = ["8080"] },
+        { protocol = "icmp" }
+      ]
+
+      enable_logging = true
+    }
+
+    allow_ops_sa_to_admin_sa = {
+      name        = "allow-ops-sa-to-admin-sa"
+      description = "Allow ops VMs (by SA) to reach admin VMs (by SA) on SSH"
+      direction   = "INGRESS"
+      priority    = 900
+
+      source_service_accounts = [
+        "ops-bastion@${var.project_id}.iam.gserviceaccount.com"
+      ]
+
+      target_service_accounts = [
+        "admin@${var.project_id}.iam.gserviceaccount.com"
+      ]
+
+      allows = [
+        { protocol = "tcp", ports = ["22"] }
+      ]
+
+      enable_logging = false
+    }
+
+    allow_tools_tag_to_db_tag = {
+      name        = "allow-tools-to-db"
+      description = "Allow instances with 'tools' tag to reach 'db' tag on 5432"
+      direction   = "INGRESS"
+      priority    = 950
+
+      source_tags = ["tools"]
+      target_tags = ["db"]
+
+      allows = [
+        { protocol = "tcp", ports = ["5432"] }
+      ]
+
+      enable_logging = false
+    }
+
+    egress_to_internet_https = {
+      name        = "egress-to-internet-https"
+      description = "Allow outbound HTTPS to the internet"
+      direction   = "EGRESS"
+      priority    = 1000
+
+      destination_ranges = ["0.0.0.0/0"]
+
+      allows = [
+        { protocol = "tcp", ports = ["443"] }
+      ]
+
+      enable_logging = false
+    }
+
+    deny_all_ingress_to_sensitive = {
+      name        = "deny-all-to-sensitive"
+      description = "Deny all ingress from the internet to sensitive workloads"
+      direction   = "INGRESS"
+      priority    = 800
+
+      source_ranges = ["0.0.0.0/0"]
+      target_tags   = ["sensitive"]
+
+      denies = [
+        { protocol = "all" }
+      ]
+
+      enable_logging = true
+    }
+  }
 }
