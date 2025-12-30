@@ -37,3 +37,43 @@ EOT
     })), {})
   }))
 }
+
+variable "manage_firewall_rules" {
+  description = "If true, create firewall rules defined in firewall_rules."
+  type        = bool
+  default     = false
+}
+
+variable "firewall_rules" {
+  description = <<EOT
+Map of firewall rules to create. Key is a stable identifier.
+Use either source_ranges or source_tags (or neither).
+Use either target_tags or target_service_accounts (or neither).
+EOT
+
+  type = map(object({
+    name        = string
+    description = optional(string, null)
+    direction   = optional(string, "INGRESS") # INGRESS or EGRESS
+    priority    = optional(number, 1000)
+    disabled    = optional(bool, false)
+    source_ranges = optional(list(string), [])
+    source_tags   = optional(list(string), [])
+    source_service_accounts = optional(list(string), [])
+    destination_ranges = optional(list(string), [])
+    target_tags            = optional(list(string), [])
+    target_service_accounts = optional(list(string), [])
+    enable_logging = optional(bool, false)
+
+    allows = optional(list(object({
+      protocol = string
+      ports    = optional(list(string), null)
+    })), [])
+    denies = optional(list(object({
+      protocol = string
+      ports    = optional(list(string), null)
+    })), [])
+  }))
+
+  default = {}
+}
