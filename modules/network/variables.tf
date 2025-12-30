@@ -20,10 +20,7 @@ variable "routing_mode" {
 }
 
 variable "subnets" {
-  description = <<EOT
-Map of subnets to create. Key is an identifier (e.g., 'apps-us-central1').
-Each subnet supports optional secondary ranges for use cases like GKE.
-EOT
+  description = "Map of subnets to create. Each subnet supports optional secondary ranges."
 
   type = map(object({
     name                     = string
@@ -45,25 +42,21 @@ variable "manage_firewall_rules" {
 }
 
 variable "firewall_rules" {
-  description = <<EOT
-Map of firewall rules to create. Key is a stable identifier.
-Use either source_ranges or source_tags (or neither).
-Use either target_tags or target_service_accounts (or neither).
-EOT
+  description = "Map of firewall rules to create. Supports ingress and egress rules"
 
   type = map(object({
-    name        = string
-    description = optional(string, null)
-    direction   = optional(string, "INGRESS") # INGRESS or EGRESS
-    priority    = optional(number, 1000)
-    disabled    = optional(bool, false)
-    source_ranges = optional(list(string), [])
-    source_tags   = optional(list(string), [])
+    name                    = string
+    description             = optional(string, null)
+    direction               = optional(string, "INGRESS") # INGRESS or EGRESS
+    priority                = optional(number, 1000)
+    disabled                = optional(bool, false)
+    source_ranges           = optional(list(string), [])
+    source_tags             = optional(list(string), [])
     source_service_accounts = optional(list(string), [])
-    destination_ranges = optional(list(string), [])
-    target_tags            = optional(list(string), [])
+    destination_ranges      = optional(list(string), [])
+    target_tags             = optional(list(string), [])
     target_service_accounts = optional(list(string), [])
-    enable_logging = optional(bool, false)
+    enable_logging          = optional(bool, false)
 
     allows = optional(list(object({
       protocol = string
