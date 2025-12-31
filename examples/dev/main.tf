@@ -179,6 +179,11 @@ module "network" {
       }
       europe-west2 = {
         source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
+        endpoint_types                     = ["ENDPOINT_TYPE_VM"]
+        logging = {
+          enabled = true
+          filter  = "ALL"
+        }
         subnets = {
           db_europe_west2 = {
             nat_primary           = true
