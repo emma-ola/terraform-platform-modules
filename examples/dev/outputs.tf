@@ -29,3 +29,7 @@ output "subnet_secondary_ranges" {
 output "firewall_rule_names" {
   value = module.network.firewall_rule_names
 }
+
+output "nat_router_names" {
+  value       = module.network.nat_router_names
+}

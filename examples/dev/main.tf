@@ -38,6 +38,12 @@ module "network" {
       name          = "shared-us-east1"
       region        = "us-east1"
       ip_cidr_range = "10.40.0.0/20"
+      secondary_ranges = {
+        pods = {
+          range_name    = "pods"
+          ip_cidr_range = "10.50.0.0/16"
+        }
+      }
     }
   }
   manage_firewall_rules = true
@@ -125,6 +131,18 @@ module "network" {
       ]
 
       enable_logging = true
+    }
+  }
+  nat = {
+    enabled = true
+    regions = {
+      (var.region) = {
+        source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+      }
+      us-east1 = {
+        source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
+        subnet_keys                        = ["shared_us_east1"]
+      }
     }
   }
 }
