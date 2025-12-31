@@ -33,3 +33,7 @@ output "firewall_rule_names" {
 output "nat_router_names" {
   value       = module.network.nat_router_names
 }
+
+output "nat_names" {
+  value       = module.network.nat_names
+}
