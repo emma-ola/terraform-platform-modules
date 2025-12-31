@@ -72,24 +72,23 @@ variable "firewall_rules" {
 }
 
 variable "nat" {
-  description = "Optional Cloud NAT configuration."
+  description = "Optional Cloud NAT configuration (multi-region)."
   type = object({
     enabled = optional(bool, false)
     regions = optional(map(object({
       router_name = optional(string, null)
       nat_name    = optional(string, null)
+      endpoint_types = optional(list(string), ["ENDPOINT_TYPE_VM"])
       source_subnetwork_ip_ranges_to_nat = optional(string, "ALL_SUBNETWORKS_ALL_IP_RANGES")
-      subnet_keys = optional(list(string), [])
+      subnets = optional(map(object({
+        nat_primary           = optional(bool, true)
+        secondary_range_names = optional(list(string), [])
+      })), {})
     })), {})
   })
 
   default = {
     enabled = false
     regions = {}
-  }
-
-  validation {
-    condition = contains([true, false], try(var.nat.enabled, false))
-    error_message = "nat.enabled must be true or false."
   }
 }

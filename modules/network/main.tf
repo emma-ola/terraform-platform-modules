@@ -26,11 +26,11 @@ resource "google_compute_subnetwork" "this" {
 
 locals {
   nat_enabled = try(var.nat.enabled, false)
+  nat_regions = local.nat_enabled ? try(var.nat.regions, {}) : {}
   subnet_keys_by_region = {
     for r in distinct([for _, s in var.subnets : s.region]) :
     r => [for k, s in var.subnets : k if s.region == r]
   }
-  nat_regions = local.nat_enabled ? try(var.nat.regions, {}) : {}
 }
 
 resource "google_compute_router" "this" {
@@ -57,45 +57,80 @@ resource "google_compute_router_nat" "this" {
   region                             = each.key
   router                             = google_compute_router.this[each.key].name
   nat_ip_allocate_option             = "AUTO_ONLY"
+  endpoint_types                     = each.value.endpoint_types
   source_subnetwork_ip_ranges_to_nat = each.value.source_subnetwork_ip_ranges_to_nat
 
   dynamic "subnetwork" {
-    for_each = each.value.source_subnetwork_ip_ranges_to_nat == "LIST_OF_SUBNETWORKS" ? toset(each.value.subnet_keys) : toset([])
-
+    for_each = each.value.source_subnetwork_ip_ranges_to_nat == "LIST_OF_SUBNETWORKS" ? each.value.subnets : {}
     content {
-      name                    = google_compute_subnetwork.this[subnetwork.value].self_link
-      source_ip_ranges_to_nat  = ["ALL_IP_RANGES"]
+      # subnetwork.key is the subnet key (e.g., "db_europe_west2")
+      name = google_compute_subnetwork.this[subnetwork.key].self_link
+      source_ip_ranges_to_nat = compact(concat(
+        try(subnetwork.value.nat_primary, true) ? ["PRIMARY_IP_RANGE"] : [],
+        length(try(subnetwork.value.secondary_range_names, [])) > 0 ? ["LIST_OF_SECONDARY_IP_RANGES"] : []
+      ))
+
+      secondary_ip_range_names = (
+        length(try(subnetwork.value.secondary_range_names, [])) > 0
+        ? subnetwork.value.secondary_range_names
+        : null
+      )
     }
   }
 
   lifecycle {
     precondition {
-      condition = contains(["ALL_SUBNETWORKS_ALL_IP_RANGES", "LIST_OF_SUBNETWORKS"], each.value.source_subnetwork_ip_ranges_to_nat)
-      error_message = "NAT region '${each.key}': source_subnetwork_ip_ranges_to_nat must be ALL_SUBNETWORKS_ALL_IP_RANGES or LIST_OF_SUBNETWORKS."
+      condition = contains(
+        ["ALL_SUBNETWORKS_ALL_IP_RANGES", "LIST_OF_SUBNETWORKS", "ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES"],
+        each.value.source_subnetwork_ip_ranges_to_nat
+      )
+      error_message = "NAT region '${each.key}': source_subnetwork_ip_ranges_to_nat must be ALL_SUBNETWORKS_ALL_IP_RANGES, ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES or LIST_OF_SUBNETWORKS."
     }
-
+    precondition {
+      condition = alltrue([
+        for t in each.value.endpoint_types :
+        contains(["ENDPOINT_TYPE_VM", "ENDPOINT_TYPE_MANAGED_PROXY_LB"], t)
+      ])
+      error_message = "NAT region '${each.key}': endpoint_types must be ENDPOINT_TYPE_VM and/or ENDPOINT_TYPE_MANAGED_PROXY_LB."
+    }
     precondition {
       condition = !(
-      each.value.source_subnetwork_ip_ranges_to_nat == "LIST_OF_SUBNETWORKS" &&
-      length(each.value.subnet_keys) == 0
+        each.value.source_subnetwork_ip_ranges_to_nat == "LIST_OF_SUBNETWORKS" &&
+        length(keys(each.value.subnets)) == 0
       )
-      error_message = "NAT region '${each.key}': when using LIST_OF_SUBNETWORKS, subnet_keys must be non-empty."
+      error_message = "NAT region '${each.key}': when using LIST_OF_SUBNETWORKS, regions[\"${each.key}\"].subnets must be non-empty."
     }
-
     precondition {
       condition = alltrue([
-        for sk in each.value.subnet_keys :
-        contains(keys(var.subnets), sk)
+        for sk in keys(each.value.subnets) : contains(keys(var.subnets), sk)
       ])
-      error_message = "NAT region '${each.key}': one or more subnet_keys do not exist in var.subnets."
+      error_message = "NAT region '${each.key}': one or more subnet keys in nat.regions[\"${each.key}\"].subnets do not exist in var.subnets."
     }
-
     precondition {
       condition = alltrue([
-        for sk in each.value.subnet_keys :
-        var.subnets[sk].region == each.key
+        for sk in keys(each.value.subnets) : var.subnets[sk].region == each.key
+      ])
+      error_message = "NAT region '${each.key}': nat subnets must reference subnets in the same region."
+    }
+    precondition {
+      condition = alltrue([
+        for sk, cfg in each.value.subnets :
+        (try(cfg.nat_primary, true) == true) || (length(try(cfg.secondary_range_names, [])) > 0)
+      ])
+      error_message = "NAT region '${each.key}': each subnet in regions[\"${each.key}\"].subnets must NAT primary and/or specify secondary_range_names."
+    }
+    precondition {
+      condition = alltrue([
+        for sk, cfg in each.value.subnets :
+        alltrue([
+          for sr in try(cfg.secondary_range_names, []) :
+          contains(
+            [for _, r in try(var.subnets[sk].secondary_ranges, {}) : r.range_name],
+            sr
+          )
         ])
-      error_message = "NAT region '${each.key}': subnet_keys must reference subnets in the same region."
+      ])
+      error_message = "NAT region '${each.key}': one or more secondary_range_names do not exist on the specified subnet."
     }
   }
 }
