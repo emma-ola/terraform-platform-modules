@@ -84,6 +84,10 @@ variable "nat" {
         nat_primary           = optional(bool, true)
         secondary_range_names = optional(list(string), [])
       })), {})
+      logging = optional(object({
+        enabled = optional(bool, true)
+        filter  = optional(string, "ERRORS_ONLY")
+      }), {})
     })), {})
   })
 

@@ -60,6 +60,11 @@ resource "google_compute_router_nat" "this" {
   endpoint_types                     = each.value.endpoint_types
   source_subnetwork_ip_ranges_to_nat = each.value.source_subnetwork_ip_ranges_to_nat
 
+  log_config {
+    enable = try(each.value.logging.enabled, true)
+    filter = try(each.value.logging.filter, "ERRORS_ONLY")
+  }
+
   dynamic "subnetwork" {
     for_each = each.value.source_subnetwork_ip_ranges_to_nat == "LIST_OF_SUBNETWORKS" ? each.value.subnets : {}
     content {
@@ -131,6 +136,10 @@ resource "google_compute_router_nat" "this" {
         ])
       ])
       error_message = "NAT region '${each.key}': one or more secondary_range_names do not exist on the specified subnet."
+    }
+    precondition {
+      condition = contains(["TRANSLATIONS_ONLY", "ERRORS_ONLY", "ALL"], try(each.value.logging.filter, "ERRORS_ONLY"))
+      error_message = "NAT region '${each.key}': logging.filter must be 'ERRORS_ONLY', 'TRANSLATIONS_ONLY' or 'ALL'."
     }
   }
 }
