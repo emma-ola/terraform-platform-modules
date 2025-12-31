@@ -33,7 +33,6 @@ module "network" {
         }
       }
     }
-
     shared_us_east1 = {
       name          = "shared-us-east1"
       region        = "us-east1"
@@ -42,6 +41,36 @@ module "network" {
         pods = {
           range_name    = "pods"
           ip_cidr_range = "10.50.0.0/16"
+        }
+      }
+    }
+    db_europe_west2 = {
+      name          = "db-europe-west2"
+      region        = "europe-west2"
+      ip_cidr_range = "10.60.0.0/16"
+      secondary_ranges = {
+        sql = {
+          range_name    = "sql"
+          ip_cidr_range = "10.70.0.0/16"
+        }
+        postgres = {
+          range_name    = "postgres"
+          ip_cidr_range = "10.80.0.0/16"
+        }
+      }
+    }
+    backend_europe_west2 = {
+      name          = "backend-europe-west2"
+      region        = "europe-west2"
+      ip_cidr_range = "10.90.0.0/16"
+      secondary_ranges = {
+        sns = {
+          range_name    = "sns"
+          ip_cidr_range = "10.100.0.0/16"
+        }
+        sqs = {
+          range_name    = "sqs"
+          ip_cidr_range = "10.110.0.0/16"
         }
       }
     }
@@ -137,11 +166,29 @@ module "network" {
     enabled = true
     regions = {
       (var.region) = {
-        source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+        source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES"
       }
       us-east1 = {
         source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
-        subnet_keys                        = ["shared_us_east1"]
+        subnets = {
+          shared_us_east1 = {
+            nat_primary           = false
+            secondary_range_names = ["pods"]
+          }
+        }
+      }
+      europe-west2 = {
+        source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
+        subnets = {
+          db_europe_west2 = {
+            nat_primary           = true
+            secondary_range_names = []
+          }
+          backend_europe_west2 = {
+            nat_primary           = true
+            secondary_range_names = ["sns", "sqs"]
+          }
+        }
       }
     }
   }
