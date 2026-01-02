@@ -199,11 +199,11 @@ module "network" {
   manage_routes = true
   routes = {
     tagged_default_internet = {
-      name        = "tagged-default-internet"
-      description = "Tag-scoped default route via default internet gateway."
-      dest_range  = "0.0.0.0/0"
-      priority    = 1000
-      tags        = ["egress-internet"]
+      name             = "tagged-default-internet"
+      description      = "Tag-scoped default route via default internet gateway."
+      dest_range       = "0.0.0.0/0"
+      priority         = 1000
+      tags             = ["egress-internet"]
       next_hop_gateway = "default-internet-gateway"
     }
   }

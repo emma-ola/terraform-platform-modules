@@ -39,5 +39,5 @@ output "nat_names" {
 }
 
 output "route_names" {
-  value       = module.network.route_names
+  value = module.network.route_names
 }
