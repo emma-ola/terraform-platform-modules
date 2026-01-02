@@ -76,9 +76,9 @@ variable "nat" {
   type = object({
     enabled = optional(bool, false)
     regions = optional(map(object({
-      router_name = optional(string, null)
-      nat_name    = optional(string, null)
-      endpoint_types = optional(list(string), ["ENDPOINT_TYPE_VM"])
+      router_name                        = optional(string, null)
+      nat_name                           = optional(string, null)
+      endpoint_types                     = optional(list(string), ["ENDPOINT_TYPE_VM"])
       source_subnetwork_ip_ranges_to_nat = optional(string, "ALL_SUBNETWORKS_ALL_IP_RANGES")
       subnets = optional(map(object({
         nat_primary           = optional(bool, true)
@@ -106,11 +106,11 @@ variable "manage_routes" {
 variable "routes" {
   description = "Map of routes to create. Exactly one next_hop_* must be set."
   type = map(object({
-    name        = string
-    description = optional(string, null)
-    dest_range = string
-    priority   = optional(number, 1000)
-    tags = optional(list(string), [])
+    name                = string
+    description         = optional(string, null)
+    dest_range          = string
+    priority            = optional(number, 1000)
+    tags                = optional(list(string), [])
     next_hop_gateway    = optional(string, null) # e.g. "default-internet-gateway"
     next_hop_instance   = optional(string, null) # self_link
     next_hop_ip         = optional(string, null) # IP address
