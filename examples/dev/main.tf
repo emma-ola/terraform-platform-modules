@@ -75,7 +75,7 @@ module "network" {
       }
     }
   }
-  manage_firewall_rules = true
+  manage_firewall_rules = false
   firewall_rules = {
     allow_internal_to_app = {
       name        = "allow-internal-to-app"
@@ -91,7 +91,7 @@ module "network" {
         { protocol = "icmp" }
       ]
 
-      enable_logging = true
+      enable_logging = false
     }
 
     allow_ops_sa_to_admin_sa = {
@@ -159,11 +159,11 @@ module "network" {
         { protocol = "all" }
       ]
 
-      enable_logging = true
+      enable_logging = false
     }
   }
   nat = {
-    enabled = true
+    enabled = false
     regions = {
       (var.region) = {
         source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES"
@@ -181,8 +181,7 @@ module "network" {
         source_subnetwork_ip_ranges_to_nat = "LIST_OF_SUBNETWORKS"
         endpoint_types                     = ["ENDPOINT_TYPE_VM"]
         logging = {
-          enabled = true
-          filter  = "ALL"
+          enabled = false
         }
         subnets = {
           db_europe_west2 = {
@@ -195,6 +194,17 @@ module "network" {
           }
         }
       }
+    }
+  }
+  manage_routes = true
+  routes = {
+    tagged_default_internet = {
+      name        = "tagged-default-internet"
+      description = "Tag-scoped default route via default internet gateway."
+      dest_range  = "0.0.0.0/0"
+      priority    = 1000
+      tags        = ["egress-internet"]
+      next_hop_gateway = "default-internet-gateway"
     }
   }
 }

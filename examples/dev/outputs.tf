@@ -37,3 +37,7 @@ output "nat_router_names" {
 output "nat_names" {
   value = module.network.nat_names
 }
+
+output "route_names" {
+  value       = module.network.route_names
+}
