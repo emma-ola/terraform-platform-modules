@@ -196,7 +196,7 @@ module "network" {
       }
     }
   }
-  manage_routes = true
+  manage_routes = false
   routes = {
     tagged_default_internet = {
       name             = "tagged-default-internet"
