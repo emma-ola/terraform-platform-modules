@@ -251,3 +251,43 @@ resource "google_compute_firewall" "rules" {
 
   }
 }
+
+resource "google_compute_route" "this" {
+  for_each = var.manage_routes ? var.routes : {}
+
+  name        = each.value.name
+  project     = var.project_id
+  network     = google_compute_network.this.name
+  description = each.value.description
+  dest_range = each.value.dest_range
+  priority   = each.value.priority
+  tags       = length(each.value.tags) > 0 ? each.value.tags : null
+  next_hop_gateway    = each.value.next_hop_gateway
+  next_hop_instance   = each.value.next_hop_instance
+  next_hop_ip         = each.value.next_hop_ip
+  next_hop_ilb        = each.value.next_hop_ilb
+  next_hop_vpn_tunnel = each.value.next_hop_vpn_tunnel
+
+  lifecycle {
+    precondition {
+      condition = (
+      length(compact([
+        each.value.next_hop_gateway,
+        each.value.next_hop_instance,
+        each.value.next_hop_ip,
+        each.value.next_hop_ilb,
+        each.value.next_hop_vpn_tunnel
+      ])) == 1
+      )
+      error_message = "Route '${each.key}': exactly one next_hop_* must be set."
+    }
+    precondition {
+      condition     = each.value.priority >= 0 && each.value.priority <= 65535
+      error_message = "Route '${each.key}': priority must be between 0 and 65535."
+    }
+    precondition {
+      condition = each.value.dest_range != "0.0.0.0/0" || length(each.value.tags) > 0
+      error_message = "Route '${each.key}': dest_range 0.0.0.0/0 must be tag-scoped (set tags) to avoid impacting all instances."
+    }
+  }
+}

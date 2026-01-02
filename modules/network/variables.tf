@@ -96,3 +96,26 @@ variable "nat" {
     regions = {}
   }
 }
+
+variable "manage_routes" {
+  description = "If true, create routes defined in routes."
+  type        = bool
+  default     = false
+}
+
+variable "routes" {
+  description = "Map of routes to create. Exactly one next_hop_* must be set."
+  type = map(object({
+    name        = string
+    description = optional(string, null)
+    dest_range = string
+    priority   = optional(number, 1000)
+    tags = optional(list(string), [])
+    next_hop_gateway    = optional(string, null) # e.g. "default-internet-gateway"
+    next_hop_instance   = optional(string, null) # self_link
+    next_hop_ip         = optional(string, null) # IP address
+    next_hop_ilb        = optional(string, null) # self_link of internal LB
+    next_hop_vpn_tunnel = optional(string, null) # self_link
+  }))
+  default = {}
+}

@@ -42,3 +42,8 @@ output "nat_names" {
   description = "Map of region -> Cloud NAT name (if NAT enabled)."
   value       = { for r, nat in google_compute_router_nat.this : r => nat.name }
 }
+
+output "route_names" {
+  description = "Names of routes created by this module."
+  value       = { for k, r in google_compute_route.this : k => r.name }
+}
