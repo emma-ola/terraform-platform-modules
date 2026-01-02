@@ -1,19 +1,22 @@
-.PHONY: fmt fmt-check validate ci help
+.PHONY: fmt fmt-check validate ci lint security help
 
-# Format all Terraform files
 fmt:
 	terraform fmt -recursive
 
-# Check formatting
 fmt-check:
 	terraform fmt -check -recursive
 
-# Validate Terraform configuration
 validate:
 	terraform validate
 
-# Run the same checks CI runs
-ci: fmt-check validate
+ci: fmt-check validate lint security
+
+lint:
+	tflint --init
+	tflint --recursive
+
+security:
+	tfsec --format sarif --out tfsec.sarif .
 
 # List available commands
 help:
