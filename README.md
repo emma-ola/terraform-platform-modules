@@ -15,3 +15,15 @@ Designed to reduce duplication, prevent configuration drift, and enable safe upg
 
 ## Usage
 See `examples/dev` for a reference implementation.
+
+## Development
+
+Common tasks are standardized using a Makefile.
+
+```bash
+make fmt        # format Terraform files
+make fmt-check  # check formatting
+make validate   # validate Terraform configuration
+make ci         # run all CI checks locally
+make help       # show all available commands
+```
