@@ -20,7 +20,7 @@ module "network" {
     apps_us_central1 = {
       name          = "apps-us-central1"
       region        = var.region
-      ip_cidr_range = "10.10.0.0/20"
+      ip_cidr_range = "10.10.0.0/16"
 
       secondary_ranges = {
         pods = {
@@ -36,7 +36,7 @@ module "network" {
     shared_us_east1 = {
       name          = "shared-us-east1"
       region        = "us-east1"
-      ip_cidr_range = "10.40.0.0/20"
+      ip_cidr_range = "10.40.0.0/16"
       secondary_ranges = {
         pods = {
           range_name    = "pods"
