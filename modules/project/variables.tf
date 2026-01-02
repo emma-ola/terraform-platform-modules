@@ -103,6 +103,7 @@ variable "activate_apis" {
     "compute.googleapis.com",
     "container.googleapis.com",
     "logging.googleapis.com",
-    "monitoring.googleapis.com"
+    "monitoring.googleapis.com",
+    "networkmanagement.googleapis.com"
   ]
 }
