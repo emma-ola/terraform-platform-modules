@@ -87,16 +87,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Install tfsec CLI so we can run it in later steps
       - name: Install tfsec
         run: |
           curl -sSL https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
           tfsec --version
 
-      # Full scan for GitHub Security visibility
-      - name: Run tfsec
-        continue-on-error: true
-        run: tfsec --format sarif --out tfsec.sarif .
+      # Visibility scan (never fails)
+      - name: Run tfsec (generate SARIF for GitHub Security)
+        run: tfsec --soft-fail --format sarif --out tfsec.sarif .
 
       - name: Upload SARIF to GitHub Security
         if: always()
@@ -104,6 +102,6 @@ jobs:
         with:
           sarif_file: tfsec.sarif
 
-      # Gate only on high/critical (CI enforcement)
+      # Enforcement scan (fails only on HIGH/CRITICAL)
       - name: Gate on HIGH/CRITICAL
         run: tfsec --minimum-severity HIGH .
