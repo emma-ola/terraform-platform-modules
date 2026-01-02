@@ -90,7 +90,7 @@ jobs:
       - name: Run tfsec
         uses: aquasecurity/tfsec-action@v1.0.3
         with:
-          additional_args: --minimum-severity HIGH --format sarif --out tfsec.sarif
+          additional_args:  --format sarif --out tfsec.sarif
 
       - name: Upload SARIF to GitHub Security
         if: always()
