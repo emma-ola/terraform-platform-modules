@@ -16,10 +16,58 @@ resource "google_compute_subnetwork" "this" {
   private_ip_google_access = each.value.private_ip_google_access
 
   dynamic "secondary_ip_range" {
-    for_each = each.value.secondary_ranges
+    for_each = try(each.value.secondary_ranges, {})
     content {
       range_name    = secondary_ip_range.value.range_name
       ip_cidr_range = secondary_ip_range.value.ip_cidr_range
+    }
+  }
+  dynamic "log_config" {
+    for_each = try(each.value.flow_logs.enabled, true) ? [1] : []
+    content {
+      aggregation_interval = try(each.value.flow_logs.aggregation_interval, "INTERVAL_5_SEC")
+      flow_sampling        = try(each.value.flow_logs.flow_sampling, 0.5)
+      metadata             = try(each.value.flow_logs.metadata, "INCLUDE_ALL_METADATA")
+      metadata_fields = (
+        length(try(each.value.flow_logs.metadata_fields, [])) > 0
+        ? each.value.flow_logs.metadata_fields
+        : null
+      )
+      filter_expr = try(each.value.flow_logs.filter_expr, null)
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = try(each.value.flow_logs.flow_sampling, 0.5) >= 0 && try(each.value.flow_logs.flow_sampling, 0.5) <= 1
+      error_message = "Subnet '${each.key}': flow_logs.flow_sampling must be between 0 and 1."
+    }
+    precondition {
+      condition = contains(
+        ["INTERVAL_5_SEC", "INTERVAL_30_SEC", "INTERVAL_1_MIN", "INTERVAL_5_MIN", "INTERVAL_10_MIN", "INTERVAL_15_MIN"],
+        try(each.value.flow_logs.aggregation_interval, "INTERVAL_5_SEC")
+      )
+      error_message = "Subnet '${each.key}': flow_logs.aggregation_interval is invalid."
+    }
+    precondition {
+      condition = contains(
+        ["EXCLUDE_ALL_METADATA", "INCLUDE_ALL_METADATA", "CUSTOM_METADATA"],
+        try(each.value.flow_logs.metadata, "INCLUDE_ALL_METADATA")
+      )
+      error_message = "Subnet '${each.key}': flow_logs.metadata must be EXCLUDE_ALL_METADATA, INCLUDE_ALL_METADATA, or CUSTOM_METADATA."
+    }
+    precondition {
+      condition = !(try(each.value.flow_logs.metadata, "INCLUDE_ALL_METADATA") == "CUSTOM_METADATA"
+        && length(try(each.value.flow_logs.metadata_fields, [])) == 0
+      )
+      error_message = "Subnet '${each.key}': when flow_logs.metadata=CUSTOM_METADATA, flow_logs.metadata_fields must be set."
+    }
+    precondition {
+      condition = !(
+        try(each.value.flow_logs.metadata, "INCLUDE_ALL_METADATA") != "CUSTOM_METADATA" &&
+        length(try(each.value.flow_logs.metadata_fields, [])) > 0
+      )
+      error_message = "Subnet '${each.key}': flow_logs.metadata_fields is only valid when flow_logs.metadata=CUSTOM_METADATA."
     }
   }
 }

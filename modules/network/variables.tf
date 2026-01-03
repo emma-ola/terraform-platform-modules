@@ -27,11 +27,18 @@ variable "subnets" {
     region                   = string
     ip_cidr_range            = string
     private_ip_google_access = optional(bool, true)
-
     secondary_ranges = optional(map(object({
       range_name    = string
       ip_cidr_range = string
     })), {})
+    flow_logs = optional(object({
+      enabled              = optional(bool, true)
+      aggregation_interval = optional(string, "INTERVAL_5_SEC")
+      flow_sampling        = optional(number, 0.5)
+      metadata             = optional(string, "INCLUDE_ALL_METADATA")
+      metadata_fields      = optional(list(string), [])
+      filter_expr          = optional(string, null)
+    }), {})
   }))
 }
 
