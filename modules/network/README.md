@@ -24,7 +24,7 @@ All features are **opt-in** and controlled via input variables.
 ## Design principles
 
 - **Foundational, not opinionated about workloads**  
-  This module supports GKE, VMs, serverless, hybrid networking, and more — without hardcoding for any single product.
+  This module supports GKE, VMs, serverless, hybrid networking, and more without hardcoding for any single product.
 
 - **Safe defaults, explicit intent**  
   Powerful features (NAT, routes, firewall rules) are opt-in and validated to prevent common misconfigurations.
@@ -81,6 +81,79 @@ subnets = {
   }
 }
 ```
+
+## VPC Flow Logs (per subnet)
+
+This module supports **VPC Flow Logs** on a per-subnet basis.  
+Flow logs are **enabled by default** with secure, high-fidelity settings and can be tuned or explicitly disabled when required.
+
+### Default behavior
+If no `flow_logs` block is provided for a subnet:
+- Flow logs are **enabled**
+- Aggregation interval: `INTERVAL_5_SEC`
+- Sampling rate: `0.5`
+- Metadata: `INCLUDE_ALL_METADATA`
+
+These defaults satisfy common security and observability requirements out of the box.
+
+---
+
+### Example: default flow logs (no configuration required)
+
+```hcl
+subnets = {
+  backend_europe_west2 = {
+    name          = "backend-europe-west2"
+    region        = "europe-west2"
+    ip_cidr_range = "10.90.0.0/16"
+  }
+}
+```
+
+### Example: custom flow log configuration
+
+```hcl
+subnets = {
+  backend_europe_west2 = {
+    name          = "backend-europe-west2"
+    region        = "europe-west2"
+    ip_cidr_range = "10.90.0.0/16"
+
+    flow_logs = {
+      enabled              = true
+      aggregation_interval = "INTERVAL_30_SEC"
+      flow_sampling        = 0.2
+      metadata             = "CUSTOM_METADATA"
+      metadata_fields      = ["src_instance", "dest_instance"]
+    }
+  }
+}
+```
+
+### Example: disable flow logs
+
+```hcl
+subnets = {
+  legacy_europe_west2 = {
+    name          = "legacy-europe-west2"
+    region        = "europe-west2"
+    ip_cidr_range = "10.100.0.0/16"
+
+    flow_logs = {
+      enabled = false
+    }
+  }
+}
+```
+
+### Validation and guardrails
+The module enforces the following validations at plan time:
+
+- `flow_sampling` must be between 0 and 1
+- Only supported aggregation intervals are allowed
+- Only valid metadata modes are permitted
+- `metadata_fields` must be set when `CUSTOM_METADATA` is used
+- Invalid configurations fail fast during terraform plan.
 
 ### Firewall rules
 
