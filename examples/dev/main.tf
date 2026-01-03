@@ -22,7 +22,8 @@ module "network" {
       region        = var.region
       ip_cidr_range = "10.10.0.0/16"
       flow_logs = {
-        enabled = false
+        enabled = true
+        aggregation_interval = "INTERVAL_10_MIN"
       }
       secondary_ranges = {
         pods = {
@@ -40,7 +41,8 @@ module "network" {
       region        = "us-east1"
       ip_cidr_range = "10.40.0.0/16"
       flow_logs = {
-        enabled = false
+        enabled = true
+        aggregation_interval = "INTERVAL_10_MIN"
       }
       secondary_ranges = {
         pods = {
@@ -54,7 +56,8 @@ module "network" {
       region        = "europe-west2"
       ip_cidr_range = "10.60.0.0/16"
       flow_logs = {
-        enabled = false
+        enabled = true
+        aggregation_interval = "INTERVAL_10_MIN"
       }
       secondary_ranges = {
         sql = {
@@ -72,8 +75,8 @@ module "network" {
       region        = "europe-west2"
       ip_cidr_range = "10.90.0.0/16"
       flow_logs = {
-        enabled = false
-        # aggregation_interval = "INTERVAL_10_MIN"
+        enabled = true
+        aggregation_interval = "INTERVAL_10_MIN"
       }
       secondary_ranges = {
         sns = {
