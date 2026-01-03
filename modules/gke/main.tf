@@ -76,10 +76,10 @@ resource "google_container_cluster" "this" {
 resource "google_container_node_pool" "this" {
   for_each = var.node_pools
 
-  name     = "${var.name}-${each.key}"
-  project  = var.project_id
-  location = var.location
-  cluster  = google_container_cluster.this.name
+  name       = "${var.name}-${each.key}"
+  project    = var.project_id
+  location   = var.location
+  cluster    = google_container_cluster.this.name
   node_count = try(each.value.autoscaling_enabled, true) ? null : coalesce(try(each.value.node_count, null), each.value.min_count)
 
   dynamic "autoscaling" {
@@ -96,14 +96,14 @@ resource "google_container_node_pool" "this" {
   }
 
   node_config {
-    machine_type = each.value.machine_type
-    disk_size_gb = try(each.value.disk_size_gb, 20)
-    disk_type    = try(each.value.disk_type, "pd-balanced")
-    oauth_scopes = try(each.value.oauth_scopes, ["https://www.googleapis.com/auth/cloud-platform"])
+    machine_type    = each.value.machine_type
+    disk_size_gb    = try(each.value.disk_size_gb, 20)
+    disk_type       = try(each.value.disk_type, "pd-balanced")
+    oauth_scopes    = try(each.value.oauth_scopes, ["https://www.googleapis.com/auth/cloud-platform"])
     service_account = try(each.value.service_account, null)
-    labels = try(each.value.labels, {})
-    tags = length(try(each.value.tags, [])) > 0 ? each.value.tags : null
-    spot = try(each.value.spot, false)
+    labels          = try(each.value.labels, {})
+    tags            = length(try(each.value.tags, [])) > 0 ? each.value.tags : null
+    spot            = try(each.value.spot, false)
 
     dynamic "taint" {
       for_each = try(each.value.taints, [])
