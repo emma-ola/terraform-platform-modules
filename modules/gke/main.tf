@@ -4,10 +4,6 @@ resource "google_container_cluster" "this" {
   location                 = var.location
   remove_default_node_pool = true
   initial_node_count       = 1
-  # Added because of quota limits on some GCP projects
-  node_config {
-    disk_size_gb = 40
-  }
   deletion_protection      = var.deletion_protection
   network                  = var.network_self_link
   subnetwork               = var.subnetwork_self_link
@@ -73,6 +69,83 @@ resource "google_container_cluster" "this" {
     precondition {
       condition     = !var.enable_private_endpoint || length(var.master_authorized_networks) > 0
       error_message = "When enable_private_endpoint=true, you must provide master_authorized_networks (at least one CIDR) to avoid locking yourself out."
+    }
+  }
+}
+
+resource "google_container_node_pool" "this" {
+  for_each = var.node_pools
+
+  name     = "${var.name}-${each.key}"
+  project  = var.project_id
+  location = var.location
+  cluster  = google_container_cluster.this.name
+  node_count = try(each.value.autoscaling_enabled, true) ? null : coalesce(try(each.value.node_count, null), each.value.min_count)
+
+  dynamic "autoscaling" {
+    for_each = try(each.value.autoscaling_enabled, true) ? [1] : []
+    content {
+      min_node_count = each.value.min_count
+      max_node_count = each.value.max_count
+    }
+  }
+
+  management {
+    auto_repair  = true
+    auto_upgrade = true
+  }
+
+  node_config {
+    machine_type = each.value.machine_type
+    disk_size_gb = try(each.value.disk_size_gb, 20)
+    disk_type    = try(each.value.disk_type, "pd-balanced")
+    oauth_scopes = try(each.value.oauth_scopes, ["https://www.googleapis.com/auth/cloud-platform"])
+    service_account = try(each.value.service_account, null)
+    labels = try(each.value.labels, {})
+    tags = length(try(each.value.tags, [])) > 0 ? each.value.tags : null
+    spot = try(each.value.spot, false)
+
+    dynamic "taint" {
+      for_each = try(each.value.taints, [])
+      content {
+        key    = taint.value.key
+        value  = taint.value.value
+        effect = taint.value.effect
+      }
+    }
+
+    shielded_instance_config {
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
+    }
+
+    metadata = {
+      disable-legacy-endpoints = "true"
+    }
+  }
+
+  lifecycle {
+    precondition {
+      condition     = each.value.min_count <= each.value.max_count
+      error_message = "Node pool '${each.key}': min_count must be <= max_count."
+    }
+
+    precondition {
+      condition = alltrue([
+        for t in try(each.value.taints, []) :
+        contains(["NO_SCHEDULE", "PREFER_NO_SCHEDULE", "NO_EXECUTE"], t.effect)
+      ])
+      error_message = "Node pool '${each.key}': taint.effect must be NO_SCHEDULE, PREFER_NO_SCHEDULE, or NO_EXECUTE."
+    }
+
+    precondition {
+      condition     = try(each.value.autoscaling_enabled, true) || try(each.value.node_count, null) != null
+      error_message = "Node pool '${each.key}': when autoscaling_enabled=false you must set node_count."
+    }
+
+    precondition {
+      condition     = !try(each.value.autoscaling_enabled, true) || (each.value.min_count <= each.value.max_count)
+      error_message = "Node pool '${each.key}': min_count must be <= max_count when autoscaling is enabled."
     }
   }
 }
