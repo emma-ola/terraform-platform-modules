@@ -38,6 +38,7 @@ jobs:
       matrix:
         example_dir:
           - examples/dev
+          - examples/gke-dev
 
     steps:
       - name: Checkout
