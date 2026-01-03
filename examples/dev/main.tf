@@ -22,7 +22,7 @@ module "network" {
       region        = var.region
       ip_cidr_range = "10.10.0.0/16"
       flow_logs = {
-        enabled = true
+        enabled              = true
         aggregation_interval = "INTERVAL_10_MIN"
       }
       secondary_ranges = {
@@ -41,7 +41,7 @@ module "network" {
       region        = "us-east1"
       ip_cidr_range = "10.40.0.0/16"
       flow_logs = {
-        enabled = true
+        enabled              = true
         aggregation_interval = "INTERVAL_10_MIN"
       }
       secondary_ranges = {
@@ -56,7 +56,7 @@ module "network" {
       region        = "europe-west2"
       ip_cidr_range = "10.60.0.0/16"
       flow_logs = {
-        enabled = true
+        enabled              = true
         aggregation_interval = "INTERVAL_10_MIN"
       }
       secondary_ranges = {
@@ -75,7 +75,7 @@ module "network" {
       region        = "europe-west2"
       ip_cidr_range = "10.90.0.0/16"
       flow_logs = {
-        enabled = true
+        enabled              = true
         aggregation_interval = "INTERVAL_10_MIN"
       }
       secondary_ranges = {
