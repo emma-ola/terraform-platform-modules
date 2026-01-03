@@ -21,7 +21,9 @@ module "network" {
       name          = "apps-us-central1"
       region        = var.region
       ip_cidr_range = "10.10.0.0/16"
-
+      flow_logs = {
+        enabled = false
+      }
       secondary_ranges = {
         pods = {
           range_name    = "pods"
@@ -37,6 +39,9 @@ module "network" {
       name          = "shared-us-east1"
       region        = "us-east1"
       ip_cidr_range = "10.40.0.0/16"
+      flow_logs = {
+        enabled = false
+      }
       secondary_ranges = {
         pods = {
           range_name    = "pods"
@@ -48,6 +53,9 @@ module "network" {
       name          = "db-europe-west2"
       region        = "europe-west2"
       ip_cidr_range = "10.60.0.0/16"
+      flow_logs = {
+        enabled = false
+      }
       secondary_ranges = {
         sql = {
           range_name    = "sql"
@@ -63,6 +71,10 @@ module "network" {
       name          = "backend-europe-west2"
       region        = "europe-west2"
       ip_cidr_range = "10.90.0.0/16"
+      flow_logs = {
+        enabled = false
+        # aggregation_interval = "INTERVAL_10_MIN"
+      }
       secondary_ranges = {
         sns = {
           range_name    = "sns"
