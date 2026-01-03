@@ -16,7 +16,7 @@ module "network" {
 
   project_id   = module.project.project_id
   network_name = "platform-gke-vpc"
-  subnets = {}
+  subnets      = {}
   nat = {
     enabled = false
     regions = {
