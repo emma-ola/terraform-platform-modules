@@ -61,20 +61,20 @@ module "gke" {
   ]
   node_pools = {
     default = {
-      machine_type = "e2-standard-4"
+      machine_type = "e2-standard-2"
       min_count    = 1
-      max_count    = 3
+      max_count    = 2
       disk_size_gb = 20
       labels = {
         pool = "default"
       }
     }
     spot = {
-      machine_type        = "e2-standard-4"
+      machine_type        = "e2-standard-2"
       autoscaling_enabled = false
       min_count           = 0
       max_count           = 0
-      node_count          = 2
+      node_count          = 1
       spot                = true
       disk_size_gb        = 20
       taints = [
