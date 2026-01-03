@@ -4,6 +4,10 @@ resource "google_container_cluster" "this" {
   location                 = var.location
   remove_default_node_pool = true
   initial_node_count       = 1
+  # Added because of quota limits on some GCP projects
+  node_config {
+    disk_size_gb = 40
+  }
   deletion_protection      = var.deletion_protection
   network                  = var.network_self_link
   subnetwork               = var.subnetwork_self_link
@@ -33,6 +37,19 @@ resource "google_container_cluster" "this" {
     }
   }
 
+  dynamic "master_authorized_networks_config" {
+    for_each = var.enable_private_endpoint ? [1] : []
+    content {
+      dynamic "cidr_blocks" {
+        for_each = var.master_authorized_networks
+        content {
+          cidr_block   = cidr_blocks.value.cidr_block
+          display_name = try(cidr_blocks.value.display_name, null)
+        }
+      }
+    }
+  }
+
   # Logging/Monitoring: keep defaults for now; we can make these configurable later
   logging_service    = "logging.googleapis.com/kubernetes"
   monitoring_service = "monitoring.googleapis.com/kubernetes"
@@ -51,6 +68,11 @@ resource "google_container_cluster" "this" {
     precondition {
       condition     = var.regional ? !can(regex("^[a-z]+-[a-z0-9]+\\d-[a-z]$", var.location)) : can(regex("^[a-z]+-[a-z0-9]+\\d-[a-z]$", var.location))
       error_message = "regional=true requires a region (e.g. us-central1). regional=false requires a zone (e.g. us-central1-a)."
+    }
+
+    precondition {
+      condition     = !var.enable_private_endpoint || length(var.master_authorized_networks) > 0
+      error_message = "When enable_private_endpoint=true, you must provide master_authorized_networks (at least one CIDR) to avoid locking yourself out."
     }
   }
 }

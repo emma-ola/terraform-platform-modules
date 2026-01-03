@@ -80,18 +80,29 @@ variable "master_ipv4_cidr_block" {
   default     = "172.16.0.0/28"
 }
 
+variable "master_authorized_networks" {
+  description = "List of CIDR blocks allowed to reach the Kubernetes control plane endpoint.Required when enable_private_endpoint=true."
+  type = list(object({
+    cidr_block   = string
+    display_name = optional(string)
+  }))
+  default = []
+}
+
 variable "node_pools" {
   description = "Map of node pools to create. This module removes the default node pool and creates node pools explicitly."
   type = map(object({
-    machine_type    = string
-    min_count       = number
-    max_count       = number
-    disk_size_gb    = optional(number, 100)
-    disk_type       = optional(string, "pd-balanced")
-    spot            = optional(bool, false)
-    service_account = optional(string, null)
-    labels          = optional(map(string), {})
-    tags            = optional(list(string), [])
+    machine_type        = string
+    min_count           = number
+    max_count           = number
+    autoscaling_enabled = optional(bool, true)
+    node_count          = optional(number, null)
+    disk_size_gb        = optional(number, 20)
+    disk_type           = optional(string, "pd-balanced")
+    spot                = optional(bool, false)
+    service_account     = optional(string, null)
+    labels              = optional(map(string), {})
+    tags                = optional(list(string), [])
     taints = optional(list(object({
       key    = string
       value  = string
