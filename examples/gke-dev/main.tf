@@ -28,29 +28,24 @@ module "network" {
       secondary_ranges = {
         pods = {
           range_name    = "pods"
-          ip_cidr_range = "10.20.1.0/24"
+          ip_cidr_range = "10.20.0.0/16"
         }
         svc = {
-          range_name    = "services"
-          ip_cidr_range = "10.30.1.0/24"
+          range_name    = "svc"
+          ip_cidr_range = "10.30.0.0/16"
         }
       }
     }
   }
   nat = {
     enabled = false
-    regions = {
-      (var.region) = {
-        source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_PRIMARY_IP_RANGES"
-      }
-    }
   }
 }
 
 module "gke" {
   source = "../../modules/gke"
 
-  project_id           = var.project_id
+  project_id           = module.project.project_id
   name                 = "platform-dev"
   location             = var.region
   regional             = true
@@ -58,12 +53,40 @@ module "gke" {
   subnetwork_self_link = module.network.subnet_self_links["gke_us_central1"]
   ip_range_pods        = "pods"
   ip_range_services    = "svc"
+  master_authorized_networks = [
+    {
+      cidr_block   = "10.10.0.0/16"
+      display_name = "gke-subnet"
+    }
+  ]
   node_pools = {
     default = {
       machine_type = "e2-standard-4"
       min_count    = 1
       max_count    = 3
-      disk_size_gb = 50
+      disk_size_gb = 20
+      labels = {
+        pool = "default"
+      }
+    }
+    spot = {
+      machine_type        = "e2-standard-4"
+      autoscaling_enabled = false
+      min_count           = 0
+      max_count           = 0
+      node_count          = 2
+      spot                = true
+      disk_size_gb        = 20
+      taints = [
+        {
+          key    = "spot"
+          value  = "true"
+          effect = "NO_SCHEDULE"
+        }
+      ]
+      labels = {
+        pool = "spot"
+      }
     }
   }
 }
