@@ -6,7 +6,7 @@ variable "project_id" {
 variable "project_name" {
   description = "Display name for the project."
   type        = string
-  default     = "GKE"
+  default     = "GKE DEV"
 }
 
 variable "billing_account" {
