@@ -104,6 +104,5 @@ variable "activate_apis" {
     "container.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
-    "networkmanagement.googleapis.com"
   ]
 }
