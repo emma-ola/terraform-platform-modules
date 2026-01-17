@@ -127,7 +127,8 @@ resource "google_container_node_pool" "this" {
     }
 
     metadata = {
-      disable-legacy-endpoints = "true"
+      disable-legacy-endpoints = true
+      block-project-ssh-keys   = true
     }
 
     workload_metadata_config {
