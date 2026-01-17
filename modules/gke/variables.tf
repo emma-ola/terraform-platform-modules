@@ -139,8 +139,8 @@ EOT
     }), null)
 
     exclusions = optional(map(object({
-      start_time = string # RFC3339
-      end_time   = string # RFC3339
+      start_time = string                          # RFC3339
+      end_time   = string                          # RFC3339
       scope      = optional(string, "NO_UPGRADES") # NO_UPGRADES, NO_MINOR_UPGRADES, or NO_MINOR_OR_NODE_UPGRADES
     })), {})
   })

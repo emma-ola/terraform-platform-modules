@@ -201,9 +201,9 @@ resource "google_container_node_pool" "this" {
 
     precondition {
       condition = (
-      try(each.value.upgrade_settings.max_surge, 1) >= 0 &&
-      try(each.value.upgrade_settings.max_unavailable, 0) >= 0 &&
-      (try(each.value.upgrade_settings.max_surge, 1) + try(each.value.upgrade_settings.max_unavailable, 0)) > 0
+        try(each.value.upgrade_settings.max_surge, 1) >= 0 &&
+        try(each.value.upgrade_settings.max_unavailable, 0) >= 0 &&
+        (try(each.value.upgrade_settings.max_surge, 1) + try(each.value.upgrade_settings.max_unavailable, 0)) > 0
       )
       error_message = "Node pool '${each.key}': upgrade_settings requires max_surge/max_unavailable >= 0 and not both zero."
     }
