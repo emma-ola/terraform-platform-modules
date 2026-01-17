@@ -122,17 +122,17 @@ resource "google_container_node_pool" "this" {
   cluster    = google_container_cluster.this.name
   node_count = try(each.value.autoscaling_enabled, true) ? null : coalesce(try(each.value.node_count, null), each.value.min_count)
 
+  management {
+    auto_repair  = true
+    auto_upgrade = true
+  }
+
   dynamic "autoscaling" {
     for_each = try(each.value.autoscaling_enabled, true) ? [1] : []
     content {
       min_node_count = each.value.min_count
       max_node_count = each.value.max_count
     }
-  }
-
-  management {
-    auto_repair  = true
-    auto_upgrade = true
   }
 
   node_config {
