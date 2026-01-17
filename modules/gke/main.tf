@@ -127,6 +127,11 @@ resource "google_container_node_pool" "this" {
     auto_upgrade = true
   }
 
+  upgrade_settings {
+    max_surge       = try(each.value.upgrade_settings.max_surge, 1)
+    max_unavailable = try(each.value.upgrade_settings.max_unavailable, 0)
+  }
+
   dynamic "autoscaling" {
     for_each = try(each.value.autoscaling_enabled, true) ? [1] : []
     content {
@@ -192,6 +197,15 @@ resource "google_container_node_pool" "this" {
     precondition {
       condition     = !try(each.value.autoscaling_enabled, true) || (each.value.min_count <= each.value.max_count)
       error_message = "Node pool '${each.key}': min_count must be <= max_count when autoscaling is enabled."
+    }
+
+    precondition {
+      condition = (
+      try(each.value.upgrade_settings.max_surge, 1) >= 0 &&
+      try(each.value.upgrade_settings.max_unavailable, 0) >= 0 &&
+      (try(each.value.upgrade_settings.max_surge, 1) + try(each.value.upgrade_settings.max_unavailable, 0)) > 0
+      )
+      error_message = "Node pool '${each.key}': upgrade_settings requires max_surge/max_unavailable >= 0 and not both zero."
     }
   }
 }

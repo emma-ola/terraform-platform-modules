@@ -109,6 +109,10 @@ variable "node_pools" {
       effect = string # NO_SCHEDULE, PREFER_NO_SCHEDULE, NO_EXECUTE
     })), [])
     oauth_scopes = optional(list(string), ["https://www.googleapis.com/auth/cloud-platform"])
+    upgrade_settings = optional(object({
+      max_surge       = optional(number, 1)
+      max_unavailable = optional(number, 0)
+    }), {})
   }))
 
   default = {
