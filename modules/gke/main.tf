@@ -17,6 +17,12 @@ resource "google_container_cluster" "this" {
   subnetwork               = var.subnetwork_self_link
   resource_labels          = local.effective_labels
 
+  # Added because of total ssd limit in account
+  # node_config {
+  #   disk_size_gb = 20
+  #   disk_type    = "pd-standard"
+  # }
+
   ip_allocation_policy {
     cluster_secondary_range_name  = var.ip_range_pods
     services_secondary_range_name = var.ip_range_services
