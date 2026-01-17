@@ -119,6 +119,24 @@ resource "google_container_cluster" "this" {
   }
 }
 
+resource "google_service_account" "nodes" {
+  count        = var.create_node_service_account ? 1 : 0
+  project      = var.project_id
+  account_id   = var.node_service_account_name
+  display_name = "GKE Node Service Account (${var.name})"
+}
+
+resource "google_project_iam_member" "node_sa_roles" {
+  for_each = var.create_node_service_account ? var.node_service_account_roles : []
+  project  = var.project_id
+  role     = each.value
+  member   = "serviceAccount:${google_service_account.nodes[0].email}"
+}
+
+locals {
+  effective_node_service_account = var.create_node_service_account ? google_service_account.nodes[0].email : null
+}
+
 resource "google_container_node_pool" "this" {
   for_each = var.node_pools
 
@@ -151,7 +169,7 @@ resource "google_container_node_pool" "this" {
     disk_size_gb    = try(each.value.disk_size_gb, 20)
     disk_type       = try(each.value.disk_type, "pd-balanced")
     oauth_scopes    = try(each.value.oauth_scopes, ["https://www.googleapis.com/auth/cloud-platform"])
-    service_account = try(each.value.service_account, null)
+    service_account = coalesce(try(each.value.service_account, null), local.effective_node_service_account)
     labels          = try(each.value.labels, {})
     tags            = length(try(each.value.tags, [])) > 0 ? each.value.tags : null
     spot            = try(each.value.spot, false)

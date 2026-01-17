@@ -156,3 +156,26 @@ variable "labels" {
   type        = map(string)
   default     = {}
 }
+
+variable "create_node_service_account" {
+  description = "If true, create a dedicated node service account and grant baseline IAM roles."
+  type        = bool
+  default     = true
+}
+
+variable "node_service_account_name" {
+  description = "Service account id (account_id) to create when create_node_service_account=true."
+  type        = string
+  default     = "gke-nodes"
+}
+
+variable "node_service_account_roles" {
+  description = "Project roles to grant to the node service account."
+  type        = set(string)
+  default = [
+    "roles/logging.logWriter",
+    "roles/monitoring.metricWriter",
+    "roles/monitoring.viewer",
+    "roles/stackdriver.resourceMetadata.writer",
+  ]
+}

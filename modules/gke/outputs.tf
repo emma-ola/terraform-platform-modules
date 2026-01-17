@@ -23,3 +23,8 @@ output "ca_certificate" {
 #   description = "Map of node pool keys to created node pool names."
 #   value       = { for k, np in google_container_node_pool.this : k => np.name }
 # }
+
+output "node_service_account_email" {
+  description = "Email of the node service account created by the module (if enabled)."
+  value       = var.create_node_service_account ? google_service_account.nodes[0].email : null
+}
