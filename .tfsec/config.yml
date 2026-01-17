@@ -1,0 +1,5 @@
+exclude:
+  # PodSecurityPolicy is deprecated/removed in modern Kubernetes and GKE.
+  # Platform policy enforcement is handled via Pod Security Admission and/or
+  # Policy Controller (Gatekeeper) at the cluster/org level, not PSP.
+  - google-gke-enforce-pod-security-policy
