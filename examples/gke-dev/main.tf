@@ -68,6 +68,10 @@ module "gke" {
       labels = {
         pool = "default"
       }
+      upgrade_settings = {
+        max_surge       = 1
+        max_unavailable = 0
+      }
     }
     spot = {
       machine_type        = "e2-standard-2"
