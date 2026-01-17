@@ -1,3 +1,11 @@
+locals {
+  baseline_labels = {
+    managed_by = "terraform"
+    module     = "gke"
+  }
+  effective_labels = merge(local.baseline_labels, var.labels)
+}
+
 resource "google_container_cluster" "this" {
   name                     = var.name
   project                  = var.project_id
@@ -7,7 +15,7 @@ resource "google_container_cluster" "this" {
   deletion_protection      = var.deletion_protection
   network                  = var.network_self_link
   subnetwork               = var.subnetwork_self_link
-  resource_labels          = var.labels
+  resource_labels          = local.effective_labels
 
   ip_allocation_policy {
     cluster_secondary_range_name  = var.ip_range_pods
