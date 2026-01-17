@@ -146,15 +146,6 @@ resource "google_container_node_pool" "this" {
     spot            = try(each.value.spot, false)
     image_type      = "COS_CONTAINERD"
 
-    dynamic "taint" {
-      for_each = try(each.value.taints, [])
-      content {
-        key    = taint.value.key
-        value  = taint.value.value
-        effect = taint.value.effect
-      }
-    }
-
     shielded_instance_config {
       enable_secure_boot          = true
       enable_integrity_monitoring = true
@@ -167,6 +158,15 @@ resource "google_container_node_pool" "this" {
 
     workload_metadata_config {
       mode = "GKE_METADATA"
+    }
+
+    dynamic "taint" {
+      for_each = try(each.value.taints, [])
+      content {
+        key    = taint.value.key
+        value  = taint.value.value
+        effect = taint.value.effect
+      }
     }
   }
 
