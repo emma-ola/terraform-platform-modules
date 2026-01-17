@@ -119,3 +119,9 @@ variable "node_pools" {
     }
   }
 }
+
+variable "labels" {
+  description = "Labels applied to the GKE cluster resource."
+  type        = map(string)
+  default     = {}
+}

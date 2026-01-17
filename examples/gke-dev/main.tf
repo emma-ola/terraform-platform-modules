@@ -89,4 +89,8 @@ module "gke" {
       }
     }
   }
+  labels = {
+    env   = "dev"
+    owner = "platform"
+  }
 }

@@ -7,6 +7,7 @@ resource "google_container_cluster" "this" {
   deletion_protection      = var.deletion_protection
   network                  = var.network_self_link
   subnetwork               = var.subnetwork_self_link
+  resource_labels          = var.labels
 
   ip_allocation_policy {
     cluster_secondary_range_name  = var.ip_range_pods
@@ -15,6 +16,11 @@ resource "google_container_cluster" "this" {
 
   release_channel {
     channel = var.release_channel
+  }
+
+  network_policy {
+    enabled  = true
+    provider = "CALICO"
   }
 
   dynamic "workload_identity_config" {
@@ -104,6 +110,7 @@ resource "google_container_node_pool" "this" {
     labels          = try(each.value.labels, {})
     tags            = length(try(each.value.tags, [])) > 0 ? each.value.tags : null
     spot            = try(each.value.spot, false)
+    image_type      = "COS_CONTAINERD"
 
     dynamic "taint" {
       for_each = try(each.value.taints, [])
@@ -121,6 +128,10 @@ resource "google_container_node_pool" "this" {
 
     metadata = {
       disable-legacy-endpoints = "true"
+    }
+
+    workload_metadata_config {
+      mode = "GKE_METADATA"
     }
   }
 
