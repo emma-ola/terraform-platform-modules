@@ -120,6 +120,33 @@ variable "node_pools" {
   }
 }
 
+variable "maintenance" {
+  description = <<EOT
+Maintenance policy configuration.
+- recurring_window: RFC3339 timestamps for start/end and an RFC5545 recurrence rule
+- exclusions: blackout windows keyed by name
+EOT
+
+  type = object({
+    recurring_window = optional(object({
+      start_time = string # RFC3339
+      end_time   = string # RFC3339
+      recurrence = string # RFC5545 RRULE, e.g. "FREQ=WEEKLY;BYDAY=SA,SU"
+    }), null)
+
+    exclusions = optional(map(object({
+      start_time = string # RFC3339
+      end_time   = string # RFC3339
+      scope      = optional(string, "NO_UPGRADES") # NO_UPGRADES, NO_MINOR_UPGRADES, or NO_MINOR_OR_NODE_UPGRADES
+    })), {})
+  })
+
+  default = {
+    recurring_window = null
+    exclusions       = {}
+  }
+}
+
 variable "labels" {
   description = "Labels applied to the GKE cluster resource."
   type        = map(string)

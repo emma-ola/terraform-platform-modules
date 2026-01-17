@@ -60,6 +60,32 @@ resource "google_container_cluster" "this" {
     }
   }
 
+  dynamic "maintenance_policy" {
+    for_each = (var.maintenance.recurring_window != null || length(var.maintenance.exclusions) > 0) ? [1] : []
+    content {
+      dynamic "recurring_window" {
+        for_each = var.maintenance.recurring_window != null ? [1] : []
+        content {
+          start_time = var.maintenance.recurring_window.start_time
+          end_time   = var.maintenance.recurring_window.end_time
+          recurrence = var.maintenance.recurring_window.recurrence
+        }
+      }
+
+      dynamic "maintenance_exclusion" {
+        for_each = var.maintenance.exclusions
+        content {
+          exclusion_name = maintenance_exclusion.key
+          start_time     = maintenance_exclusion.value.start_time
+          end_time       = maintenance_exclusion.value.end_time
+          exclusion_options {
+            scope = try(maintenance_exclusion.value.scope, "NO_UPGRADES")
+          }
+        }
+      }
+    }
+  }
+
   # Logging/Monitoring: keep defaults for now; we can make these configurable later
   logging_service    = "logging.googleapis.com/kubernetes"
   monitoring_service = "monitoring.googleapis.com/kubernetes"
