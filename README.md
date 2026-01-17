@@ -120,7 +120,7 @@ A recurring maintenance window defines **when upgrades may occur**.
 ```hcl
 maintenance = {
   recurring_window = {
-    start_time = "2026-01-01T02:00:00Z"
+    start_time = "2026-01-01T00:00:00Z"
     end_time   = "2026-01-01T06:00:00Z"
     recurrence = "FREQ=WEEKLY;BYDAY=SA,SU"
   }
@@ -130,8 +130,11 @@ maintenance = {
 **Behavior:**
 
 - GKE may perform upgrades every **Saturday and Sunday**
-- Only between **02:00–06:00 UTC**
+- Only between **00:00–06:00 UTC**
 - Outside this window, upgrades are deferred
+
+This configuration provides 12 hours per week, which safely satisfies
+GKE’s 48-hour / 32-day maintenance requirement.
 
 **This applies to:**
 
@@ -177,8 +180,8 @@ maintenance = {
 
 All maintenance times must be specified in **UTC**.
 
-For reference, `02:00–06:00 UTC` corresponds to:
-- **9pm–1am ET** during standard time (EST)
-- **10pm–2am ET** during daylight time (EDT)
+For reference, 00:00–06:00 UTC corresponds to:
+- **7pm–1am ET** during standard time (EST)
+- **8pm–2am ET** during daylight time (EDT)
 
 Always convert local maintenance windows to UTC before configuring
