@@ -99,3 +99,86 @@ make fmt-check  # check formatting
 make validate   # validate Terraform configuration
 make ci         # run all CI checks locally
 make help       # show all available commands
+```
+
+---
+
+## Maintenance Windows & Exclusions
+
+The GKE module supports **maintenance policies** to control when Google may perform cluster and node upgrades.
+
+Maintenance behavior is defined using:
+- A **recurring maintenance window** (when upgrades are allowed)
+- Optional **maintenance exclusions** (blackout periods when upgrades are blocked)
+
+---
+
+### Recurring maintenance window
+
+A recurring maintenance window defines **when upgrades may occur**.
+
+```hcl
+maintenance = {
+  recurring_window = {
+    start_time = "2026-01-01T02:00:00Z"
+    end_time   = "2026-01-01T06:00:00Z"
+    recurrence = "FREQ=WEEKLY;BYDAY=SA,SU"
+  }
+}
+```
+
+**Behavior:**
+
+- GKE may perform upgrades every **Saturday and Sunday**
+- Only between **02:00–06:00 UTC**
+- Outside this window, upgrades are deferred
+
+**This applies to:**
+
+- Control plane upgrades
+- Node pool upgrades (when `auto_upgrade = true`)
+- Routine cluster maintenance
+
+---
+
+### Maintenance exclusions (blackout periods)
+
+Maintenance exclusions define periods where **no upgrades are allowed**, even if they overlap with a recurring maintenance window.
+
+```hcl
+maintenance = {
+  exclusions = {
+    black_friday = {
+      start_time = "2026-11-27T00:00:00Z"
+      end_time   = "2026-11-30T23:59:59Z"
+      scope      = "NO_UPGRADES"
+    }
+  }
+}
+```
+
+**Behavior:**
+
+- No upgrades will occur during the exclusion window
+- Exclusions **always take precedence** over recurring windows
+- Deferred upgrades resume during the next valid maintenance window
+
+---
+
+### How windows and exclusions interact
+
+- **Recurring windows** define when upgrades are allowed
+- **Exclusions** define when upgrades are forbidden
+- If both apply at the same time, **exclusions win**
+
+---
+
+### Timezone considerations
+
+All maintenance times must be specified in **UTC**.
+
+For reference, `02:00–06:00 UTC` corresponds to:
+- **9pm–1am ET** during standard time (EST)
+- **10pm–2am ET** during daylight time (EDT)
+
+Always convert local maintenance windows to UTC before configuring
