@@ -19,10 +19,10 @@ output "ca_certificate" {
   sensitive   = true
 }
 
-# output "node_pool_names" {
-#   description = "Map of node pool keys to created node pool names."
-#   value       = { for k, np in google_container_node_pool.this : k => np.name }
-# }
+output "node_pool_names" {
+  description = "Map of node pool keys to created node pool names."
+  value       = { for k, np in google_container_node_pool.this : k => np.name }
+}
 
 output "node_service_account_email" {
   description = "Email of the node service account created by the module (if enabled)."
