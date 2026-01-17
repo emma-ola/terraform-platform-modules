@@ -93,4 +93,19 @@ module "gke" {
     env   = "dev"
     owner = "platform"
   }
+  maintenance = {
+    recurring_window = {
+      start_time = "2026-01-01T02:00:00Z"
+      end_time   = "2026-01-01T06:00:00Z"
+      recurrence = "FREQ=WEEKLY;BYDAY=SA,SU"
+    }
+
+    exclusions = {
+      black_friday = {
+        start_time = "2026-11-27T00:00:00Z"
+        end_time   = "2026-11-30T23:59:59Z"
+        scope      = "NO_UPGRADES"
+      }
+    }
+  }
 }
